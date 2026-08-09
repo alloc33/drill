@@ -54,6 +54,7 @@ pub fn remove(config: &mut Config, state: &mut State, name: &str) -> Result<(), 
 
     config.units.remove(name);
     state.cycles.remove(name);
+    state.retries.remove(name);
     config.save()?;
     state.save()?;
 
@@ -88,7 +89,7 @@ pub fn propose(config: &Config, state: &mut State) -> Result<(), DrillError> {
     }
 
     let (session, is_existing) = proposer::propose(config, state)?;
-    display::print_session(&session, is_existing);
+    display::print_session(&session, &state.retries, is_existing);
     Ok(())
 }
 
@@ -219,16 +220,79 @@ pub fn status(config: &Config, state: &State) -> Result<(), DrillError> {
         let cycle_num = cycle.map_or(0, |c| c.cycle_number);
         let remaining = available.saturating_sub(proposed);
 
-        display::print_status(
+        let retry_count = state.retries.get(name).map_or(0, |r| r.len());
+
+        display::print_status(&display::UnitStatus {
             name,
             total,
             blacklisted,
             available,
             proposed,
             remaining,
-            cycle_num,
-        );
+            cycle_number: cycle_num,
+            retries: retry_count,
+        });
     }
+    Ok(())
+}
+
+pub fn fail(
+    config: &Config,
+    state: &mut State,
+    unit: &str,
+    file: &str,
+) -> Result<(), DrillError> {
+    let unit_config = config
+        .units
+        .get(unit)
+        .ok_or_else(|| DrillError::UnitNotFound(unit.to_string()))?;
+
+    let files = scanner::scan_exercises(&unit_config.path, &unit_config.extension)?;
+    if !files.contains(&file.to_string()) {
+        return Err(DrillError::FileNotInUnit {
+            unit: unit.to_string(),
+            file: file.to_string(),
+        });
+    }
+
+    let retries = state.retries.entry(unit.to_string()).or_default();
+    if retries.contains(&file.to_string()) {
+        return Err(DrillError::AlreadyFailed {
+            unit: unit.to_string(),
+            file: file.to_string(),
+        });
+    }
+
+    retries.push(file.to_string());
+    retries.sort();
+    state.save()?;
+
+    println!("Marked '{file}' as failed in unit '{unit}' — will retry tomorrow");
+    Ok(())
+}
+
+pub fn pass(
+    config: &Config,
+    state: &mut State,
+    unit: &str,
+    file: &str,
+) -> Result<(), DrillError> {
+    if !config.units.contains_key(unit) {
+        return Err(DrillError::UnitNotFound(unit.to_string()));
+    }
+
+    let retries = state.retries.entry(unit.to_string()).or_default();
+    if !retries.contains(&file.to_string()) {
+        return Err(DrillError::NotFailed {
+            unit: unit.to_string(),
+            file: file.to_string(),
+        });
+    }
+
+    retries.retain(|f| f != file);
+    state.save()?;
+
+    println!("Marked '{file}' as passed in unit '{unit}' — removed from retries");
     Ok(())
 }
 

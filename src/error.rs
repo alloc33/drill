@@ -25,6 +25,12 @@ pub enum DrillError {
     #[error("file '{file}' not blacklisted in unit '{unit}'")]
     NotBlacklisted { unit: String, file: String },
 
+    #[error("file '{file}' already marked as failed in unit '{unit}'")]
+    AlreadyFailed { unit: String, file: String },
+
+    #[error("file '{file}' not in retry list for unit '{unit}'")]
+    NotFailed { unit: String, file: String },
+
     #[error("{0}")]
     Io(#[from] std::io::Error),
 

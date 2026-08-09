@@ -15,6 +15,8 @@ pub struct State {
     pub cycles: HashMap<String, CycleState>,
     #[serde(default)]
     pub sessions: BTreeMap<String, Session>,
+    #[serde(default)]
+    pub retries: HashMap<String, Vec<String>>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -76,6 +78,10 @@ mod tests {
                 cycle_number: 3,
             },
         );
+        state.retries.insert(
+            "dsa".to_string(),
+            vec!["003_c.ers".to_string()],
+        );
 
         let date = NaiveDate::from_ymd_opt(2026, 8, 9).unwrap();
         let mut selections = BTreeMap::new();
@@ -92,5 +98,19 @@ mod tests {
         let reserialized = serde_json::to_string_pretty(&deserialized).unwrap();
 
         assert_eq!(serialized, reserialized);
+    }
+
+    #[test]
+    fn retries_default_empty() {
+        let state = State::default();
+        assert!(state.retries.is_empty());
+    }
+
+    #[test]
+    fn deserialize_without_retries_field() {
+        // Old state.json files won't have the retries field
+        let json = r#"{"cycles": {}, "sessions": {}}"#;
+        let state: State = serde_json::from_str(json).unwrap();
+        assert!(state.retries.is_empty());
     }
 }

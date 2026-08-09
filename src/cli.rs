@@ -40,6 +40,10 @@ pub enum Command {
         #[arg(long, default_value_t = 7)]
         days: u32,
     },
+    /// Mark an exercise as failed (retry tomorrow)
+    Fail { unit: String, file: String },
+    /// Mark a failed exercise as passed (remove from retries)
+    Pass { unit: String, file: String },
     /// Show per-unit statistics
     Status,
     /// Reset cycle for a unit (or all units)
