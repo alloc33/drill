@@ -2,11 +2,7 @@ use std::collections::HashMap;
 
 use crate::state::Session;
 
-pub fn print_session(
-    session: &Session,
-    retries: &HashMap<String, Vec<String>>,
-    is_existing: bool,
-) {
+pub fn print_session(session: &Session, retries: &HashMap<String, Vec<String>>, is_existing: bool) {
     if is_existing {
         println!("drill — {} (already proposed)", session.date);
     } else {
@@ -51,7 +47,10 @@ pub fn print_status(s: &UnitStatus<'_>) {
     println!("    total:       {}", s.total);
     println!("    blacklisted: {}", s.blacklisted);
     println!("    available:   {}", s.available);
-    println!("    proposed:    {} (cycle #{})", s.proposed, s.cycle_number);
+    println!(
+        "    proposed:    {} (cycle #{})",
+        s.proposed, s.cycle_number
+    );
     println!("    remaining:   {}", s.remaining);
     if s.retries > 0 {
         println!("    retries:     {}", s.retries);

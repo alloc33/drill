@@ -78,10 +78,9 @@ mod tests {
                 cycle_number: 3,
             },
         );
-        state.retries.insert(
-            "dsa".to_string(),
-            vec!["003_c.ers".to_string()],
-        );
+        state
+            .retries
+            .insert("dsa".to_string(), vec!["003_c.ers".to_string()]);
 
         let date = NaiveDate::from_ymd_opt(2026, 8, 9).unwrap();
         let mut selections = BTreeMap::new();

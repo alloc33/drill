@@ -1,5 +1,7 @@
-use std::io::{self, Write};
-use std::path::PathBuf;
+use std::{
+    io::{self, Write},
+    path::PathBuf,
+};
 
 use chrono::{Days, Local};
 
@@ -255,15 +257,10 @@ pub fn more(
         .get(&today_key)
         .ok_or(DrillError::NoProposeToday)?;
 
-    let already_today = session
-        .selections
-        .get(unit)
-        .map_or(0, |v| v.len());
+    let already_today = session.selections.get(unit).map_or(0, |v| v.len());
 
     if !skip_confirm {
-        print!(
-            "Already have {already_today} from '{unit}' today. Pick {count} more? [y/N] "
-        );
+        print!("Already have {already_today} from '{unit}' today. Pick {count} more? [y/N] ");
         io::stdout().flush()?;
         let mut input = String::new();
         io::stdin().read_line(&mut input)?;
@@ -295,12 +292,7 @@ pub fn more(
     Ok(())
 }
 
-pub fn fail(
-    config: &Config,
-    state: &mut State,
-    unit: &str,
-    file: &str,
-) -> Result<(), DrillError> {
+pub fn fail(config: &Config, state: &mut State, unit: &str, file: &str) -> Result<(), DrillError> {
     let unit_config = config
         .units
         .get(unit)
@@ -330,12 +322,7 @@ pub fn fail(
     Ok(())
 }
 
-pub fn pass(
-    config: &Config,
-    state: &mut State,
-    unit: &str,
-    file: &str,
-) -> Result<(), DrillError> {
+pub fn pass(config: &Config, state: &mut State, unit: &str, file: &str) -> Result<(), DrillError> {
     if !config.units.contains_key(unit) {
         return Err(DrillError::UnitNotFound(unit.to_string()));
     }
