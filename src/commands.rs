@@ -1,3 +1,4 @@
+use std::io::{self, Write};
 use std::path::PathBuf;
 
 use chrono::{Days, Local};
@@ -233,6 +234,64 @@ pub fn status(config: &Config, state: &State) -> Result<(), DrillError> {
             retries: retry_count,
         });
     }
+    Ok(())
+}
+
+pub fn more(
+    config: &Config,
+    state: &mut State,
+    unit: &str,
+    count: usize,
+    skip_confirm: bool,
+) -> Result<(), DrillError> {
+    let unit_config = config
+        .units
+        .get(unit)
+        .ok_or_else(|| DrillError::UnitNotFound(unit.to_string()))?;
+
+    let today_key = Local::now().date_naive().to_string();
+    let session = state
+        .sessions
+        .get(&today_key)
+        .ok_or(DrillError::NoProposeToday)?;
+
+    let already_today = session
+        .selections
+        .get(unit)
+        .map_or(0, |v| v.len());
+
+    if !skip_confirm {
+        print!(
+            "Already have {already_today} from '{unit}' today. Pick {count} more? [y/N] "
+        );
+        io::stdout().flush()?;
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+        if !input.trim().eq_ignore_ascii_case("y") {
+            println!("Cancelled.");
+            return Ok(());
+        }
+    }
+
+    let selected = proposer::select_more(unit, unit_config, state, count)?;
+
+    // Append to today's session
+    let session = state.sessions.get_mut(&today_key).unwrap();
+    session
+        .selections
+        .entry(unit.to_string())
+        .or_default()
+        .extend(selected.clone());
+
+    state.save()?;
+
+    println!();
+    println!("  [{unit}] extra");
+    for file in &selected {
+        println!("    {file}");
+    }
+    println!();
+
     Ok(())
 }
 

@@ -40,6 +40,15 @@ pub enum Command {
         #[arg(long, default_value_t = 7)]
         days: u32,
     },
+    /// Pick extra exercises from a unit (on top of today's set)
+    More {
+        unit: String,
+        #[arg(default_value_t = 4)]
+        count: usize,
+        /// Skip confirmation prompt
+        #[arg(short, long)]
+        yes: bool,
+    },
     /// Mark an exercise as failed (retry tomorrow)
     Fail { unit: String, file: String },
     /// Mark a failed exercise as passed (remove from retries)

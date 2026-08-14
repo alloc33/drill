@@ -49,6 +49,25 @@ fn select_for_unit(
     unit_config: &crate::config::UnitConfig,
     state: &mut State,
 ) -> Result<Vec<String>, DrillError> {
+    select_n_from_unit(unit_name, unit_config, state, unit_config.count)
+}
+
+/// Pick extra exercises from a unit. Same cycle tracking as propose.
+pub fn select_more(
+    unit_name: &str,
+    unit_config: &crate::config::UnitConfig,
+    state: &mut State,
+    count: usize,
+) -> Result<Vec<String>, DrillError> {
+    select_n_from_unit(unit_name, unit_config, state, count)
+}
+
+fn select_n_from_unit(
+    unit_name: &str,
+    unit_config: &crate::config::UnitConfig,
+    state: &mut State,
+    count: usize,
+) -> Result<Vec<String>, DrillError> {
     let all_files = scanner::scan_exercises(&unit_config.path, &unit_config.extension)?;
 
     let available: Vec<String> = all_files
@@ -71,8 +90,6 @@ fn select_for_unit(
         .filter(|f| !cycle.proposed.contains(f))
         .cloned()
         .collect();
-
-    let count = unit_config.count;
 
     let selected = if remaining.len() >= count {
         random_sample(&remaining, count)

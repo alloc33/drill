@@ -31,6 +31,9 @@ pub enum DrillError {
     #[error("file '{file}' not in retry list for unit '{unit}'")]
     NotFailed { unit: String, file: String },
 
+    #[error("no session for today — run 'drill propose' first")]
+    NoProposeToday,
+
     #[error("{0}")]
     Io(#[from] std::io::Error),
 

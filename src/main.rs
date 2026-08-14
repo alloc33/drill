@@ -41,6 +41,9 @@ fn run() -> Result<(), error::DrillError> {
             }
             BlacklistAction::List { unit } => commands::blacklist_list(&config, unit.as_deref()),
         },
+        Command::More { unit, count, yes } => {
+            commands::more(&config, &mut state, &unit, count, yes)
+        }
         Command::Fail { unit, file } => commands::fail(&config, &mut state, &unit, &file),
         Command::Pass { unit, file } => commands::pass(&config, &mut state, &unit, &file),
         Command::History { days } => commands::history(&state, days),
