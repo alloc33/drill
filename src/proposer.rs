@@ -101,10 +101,17 @@ fn select_n_from_unit(
         cycle.proposed.clear();
         cycle.cycle_number += 1;
 
-        // Fresh pool excludes what we just picked (no immediate repeats)
+        // Exclude yesterday's picks to avoid back-to-back repeats at cycle boundary
+        let last_session_picks: Vec<&String> = state
+            .sessions
+            .values()
+            .next_back()
+            .and_then(|s| s.selections.get(unit_name))
+            .map_or(Vec::new(), |v| v.iter().collect());
+
         let fresh_pool: Vec<String> = available
             .iter()
-            .filter(|f| !picks.contains(f))
+            .filter(|f| !picks.contains(f) && !last_session_picks.contains(f))
             .cloned()
             .collect();
 
