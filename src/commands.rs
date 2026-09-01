@@ -342,6 +342,20 @@ pub fn pass(config: &Config, state: &mut State, unit: &str, file: &str) -> Resul
     Ok(())
 }
 
+pub fn set_count(config: &mut Config, unit: &str, count: usize) -> Result<(), DrillError> {
+    let unit_config = config
+        .units
+        .get_mut(unit)
+        .ok_or_else(|| DrillError::UnitNotFound(unit.to_string()))?;
+
+    let old = unit_config.count;
+    unit_config.count = count;
+    config.save()?;
+
+    println!("Updated '{unit}': {old} → {count} per day");
+    Ok(())
+}
+
 pub fn reset(
     config: &Config,
     state: &mut State,

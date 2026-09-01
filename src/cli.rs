@@ -53,6 +53,12 @@ pub enum Command {
     Fail { unit: String, file: String },
     /// Mark a failed exercise as passed (remove from retries)
     Pass { unit: String, file: String },
+    /// Change daily count for a unit
+    Set {
+        unit: String,
+        #[arg(long)]
+        count: usize,
+    },
     /// Show per-unit statistics
     Status,
     /// Reset cycle for a unit (or all units)
