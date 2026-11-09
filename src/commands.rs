@@ -369,7 +369,11 @@ pub fn set_count(
             return Err(DrillError::PathNotFound(path));
         }
         let old = &unit_config.path;
-        println!("Updated '{unit}': path {} → {}", old.display(), path.display());
+        println!(
+            "Updated '{unit}': path {} → {}",
+            old.display(),
+            path.display()
+        );
         unit_config.path = path;
     }
 

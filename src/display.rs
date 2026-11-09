@@ -25,10 +25,11 @@ pub fn print_session(
     println!();
 
     // Show retries first, sorted by unit order
-    let mut retry_units: Vec<_> = retries.iter().filter(|(_, files)| !files.is_empty()).collect();
-    retry_units.sort_by(|(a, _), (b, _)| {
-        unit_sort_key(a, config).cmp(&unit_sort_key(b, config))
-    });
+    let mut retry_units: Vec<_> = retries
+        .iter()
+        .filter(|(_, files)| !files.is_empty())
+        .collect();
+    retry_units.sort_by(|(a, _), (b, _)| unit_sort_key(a, config).cmp(&unit_sort_key(b, config)));
     for (unit_name, files) in &retry_units {
         println!("  [{unit_name}] retry");
         for file in *files {
@@ -39,9 +40,8 @@ pub fn print_session(
 
     // Then fresh picks, sorted by unit order
     let mut selection_units: Vec<_> = session.selections.iter().collect();
-    selection_units.sort_by(|(a, _), (b, _)| {
-        unit_sort_key(a, config).cmp(&unit_sort_key(b, config))
-    });
+    selection_units
+        .sort_by(|(a, _), (b, _)| unit_sort_key(a, config).cmp(&unit_sort_key(b, config)));
     for (unit_name, files) in &selection_units {
         println!("  [{unit_name}]");
         for file in *files {
