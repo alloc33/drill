@@ -32,7 +32,7 @@ fn generate_session(
 
     let mut selections = BTreeMap::new();
 
-    for (unit_name, unit_config) in &config.units {
+    for (unit_name, unit_config) in config.units_ordered() {
         let selected = select_for_unit(unit_name, unit_config, state)?;
         selections.insert(unit_name.clone(), selected);
     }
@@ -164,6 +164,7 @@ mod tests {
             extension: "ers".to_string(),
             count,
             blacklist: Vec::new(),
+            order: None,
         }
     }
 
@@ -335,6 +336,7 @@ mod tests {
                 extension: "ers".to_string(),
                 count: 3,
                 blacklist: Vec::new(),
+                order: None,
             },
         );
 
@@ -364,6 +366,7 @@ mod tests {
                 extension: "ers".to_string(),
                 count: 3,
                 blacklist: Vec::new(),
+                order: None,
             },
         );
 

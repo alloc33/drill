@@ -42,6 +42,7 @@ pub fn add(
             extension: ext.to_string(),
             count,
             blacklist: Vec::new(),
+            order: None,
         },
     );
     config.save()?;
@@ -71,7 +72,7 @@ pub fn list(config: &Config) -> Result<(), DrillError> {
         return Ok(());
     }
 
-    for (name, unit) in &config.units {
+    for (name, unit) in config.units_ordered() {
         let total = scanner::scan_exercises(&unit.path, &unit.extension)
             .map(|f| f.len())
             .unwrap_or(0);
@@ -92,7 +93,7 @@ pub fn propose(config: &Config, state: &mut State) -> Result<(), DrillError> {
     }
 
     let (session, is_existing) = proposer::propose(config, state)?;
-    display::print_session(&session, &state.retries, is_existing);
+    display::print_session(&session, &state.retries, config, is_existing);
     Ok(())
 }
 
@@ -212,18 +213,18 @@ pub fn status(config: &Config, state: &State) -> Result<(), DrillError> {
         return Ok(());
     }
 
-    for (name, unit) in &config.units {
+    for (name, unit) in config.units_ordered() {
         let total = scanner::scan_exercises(&unit.path, &unit.extension)
             .map(|f| f.len())
             .unwrap_or(0);
         let blacklisted = unit.blacklist.len();
         let available = total.saturating_sub(blacklisted);
-        let cycle = state.cycles.get(name);
+        let cycle = state.cycles.get(name.as_str());
         let proposed = cycle.map_or(0, |c| c.proposed.len());
         let cycle_num = cycle.map_or(0, |c| c.cycle_number);
         let remaining = available.saturating_sub(proposed);
 
-        let retry_count = state.retries.get(name).map_or(0, |r| r.len());
+        let retry_count = state.retries.get(name.as_str()).map_or(0, |r| r.len());
 
         display::print_status(&display::UnitStatus {
             name,
@@ -342,17 +343,37 @@ pub fn pass(config: &Config, state: &mut State, unit: &str, file: &str) -> Resul
     Ok(())
 }
 
-pub fn set_count(config: &mut Config, unit: &str, count: usize) -> Result<(), DrillError> {
+pub fn set_count(
+    config: &mut Config,
+    unit: &str,
+    count: Option<usize>,
+    order: Option<u32>,
+    path: Option<PathBuf>,
+) -> Result<(), DrillError> {
     let unit_config = config
         .units
         .get_mut(unit)
         .ok_or_else(|| DrillError::UnitNotFound(unit.to_string()))?;
 
-    let old = unit_config.count;
-    unit_config.count = count;
-    config.save()?;
+    if let Some(count) = count {
+        let old = unit_config.count;
+        unit_config.count = count;
+        println!("Updated '{unit}': {old} → {count} per day");
+    }
+    if let Some(order) = order {
+        unit_config.order = Some(order);
+        println!("Updated '{unit}': order → {order}");
+    }
+    if let Some(path) = path {
+        if !path.exists() {
+            return Err(DrillError::PathNotFound(path));
+        }
+        let old = &unit_config.path;
+        println!("Updated '{unit}': path {} → {}", old.display(), path.display());
+        unit_config.path = path;
+    }
 
-    println!("Updated '{unit}': {old} → {count} per day");
+    config.save()?;
     Ok(())
 }
 

@@ -17,9 +17,23 @@ pub struct UnitConfig {
     pub count: usize,
     #[serde(default)]
     pub blacklist: Vec<String>,
+    #[serde(default)]
+    pub order: Option<u32>,
 }
 
 impl Config {
+    /// Units sorted by order (then alphabetically).
+    pub fn units_ordered(&self) -> Vec<(&String, &UnitConfig)> {
+        let mut units: Vec<_> = self.units.iter().collect();
+        units.sort_by(|(a_name, a), (b_name, b)| {
+            a.order
+                .unwrap_or(u32::MAX)
+                .cmp(&b.order.unwrap_or(u32::MAX))
+                .then_with(|| a_name.cmp(b_name))
+        });
+        units
+    }
+
     fn config_path() -> Result<PathBuf, DrillError> {
         let dir = dirs::config_dir()
             .ok_or_else(|| {
@@ -66,6 +80,7 @@ mod tests {
                 extension: "ers".to_string(),
                 count: 4,
                 blacklist: vec!["027_lru_cache.ers".to_string()],
+                order: None,
             },
         );
 

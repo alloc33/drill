@@ -46,7 +46,12 @@ fn run() -> Result<(), error::DrillError> {
         }
         Command::Fail { unit, file } => commands::fail(&config, &mut state, &unit, &file),
         Command::Pass { unit, file } => commands::pass(&config, &mut state, &unit, &file),
-        Command::Set { unit, count } => commands::set_count(&mut config, &unit, count),
+        Command::Set {
+            unit,
+            count,
+            order,
+            path,
+        } => commands::set_count(&mut config, &unit, count, order, path),
         Command::History { days } => commands::history(&state, days),
         Command::Status => commands::status(&config, &state),
         Command::Reset { unit } => commands::reset(&config, &mut state, unit.as_deref()),
